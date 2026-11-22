@@ -1,6 +1,6 @@
 package io.github.kotlin.fibonacci
 
-import dev.oxikt.opaquekmp.FibonacciGenerator
+import com.frankegan.opaque_kmp.FibonacciGenerator
 
 fun generateFibi(generator: FibonacciGenerator = FibonacciGenerator(firstElement, secondElement)) = sequence {
     while (true) {
