@@ -1,9 +1,5 @@
-package io.github.kotlin.fibonacci
+package com.frankegan.opaque_kmp
 
-import com.frankegan.opaque_kmp.ExportedOpaqueException
-import com.frankegan.opaque_kmp.OpaqueServerSetup
-import com.frankegan.opaque_kmp.clientLoginStart
-import com.frankegan.opaque_kmp.clientRegistrationStart
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertFailsWith
