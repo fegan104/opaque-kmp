@@ -4,16 +4,16 @@ plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.android.kotlin.multiplatform.library)
     alias(libs.plugins.vanniktech.mavenPublish)
-    id("dev.oxikt.gradle.plugin")
+    alias(libs.plugins.oxikt)
 }
 
-group = "io.github.kotlin"
-version = "1.0.0"
+group = "com.frankegan"
+version = "0.0.1"
 
 kotlin {
     jvm()
     android {
-        namespace = "org.jetbrains.kotlinx.multiplatform.library.template"
+        namespace = "com.frankegan.opaque-kmp"
         compileSdk = libs.versions.android.compileSdk.get().toInt()
         minSdk = libs.versions.android.minSdk.get().toInt()
 
@@ -52,7 +52,7 @@ mavenPublishing {
 
     signAllPublications()
 
-    coordinates(group.toString(), "library", version.toString())
+    coordinates(group.toString(), "opaque-kmp", version.toString())
 
     pom {
         name = "My library"

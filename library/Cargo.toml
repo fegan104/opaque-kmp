@@ -11,3 +11,8 @@ path = "src/commonMain/rust/lib.rs"
 
 [dependencies]
 uniffi = "0.32.0"
+opaque-ke = { version = "4.0", features = ["argon2"] }
+argon2 = "0.5"
+sha2 = "0.10"
+rand = "0.8"
+zeroize = { version = "1.8", features = ["derive"] }

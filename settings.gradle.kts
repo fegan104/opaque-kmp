@@ -13,5 +13,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "opaque-ke"
-include(":opaque-ke")
+rootProject.name = "opaque-kmp"
+include(":library")
