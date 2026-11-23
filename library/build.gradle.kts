@@ -1,3 +1,4 @@
+import org.gradle.kotlin.dsl.support.serviceOf
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
@@ -47,6 +48,28 @@ kotlin {
         }
     }
 }
+
+// Android host tests run the androidMain bindings on the host JVM, but dev.oxikt:runtime-android only
+// ships liboxikt_runtime for Android ABIs. Borrow the host builds bundled in runtime-jvm so JNA can
+// find them on the test classpath.
+val oxiktHostRuntime = configurations.create("oxiktHostRuntime") {
+    isCanBeConsumed = false
+    isTransitive = false
+}
+
+dependencies {
+    oxiktHostRuntime(libs.oxikt.runtime.jvm)
+}
+
+val extractOxiktHostRuntime = tasks.register<Sync>("extractOxiktHostRuntime") {
+    val archives = serviceOf<ArchiveOperations>()
+    from(oxiktHostRuntime.elements.map { files -> files.map { archives.zipTree(it.asFile) } }) {
+        include("linux-*/**", "darwin-*/**", "win32-*/**")
+    }
+    into(layout.buildDirectory.dir("oxiktHostRuntime"))
+}
+
+kotlin.sourceSets.getByName("androidHostTest").resources.srcDir(extractOxiktHostRuntime)
 
 uniffi {
     generateFromLibrary {
