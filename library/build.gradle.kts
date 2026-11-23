@@ -49,9 +49,14 @@ kotlin {
     }
 }
 
-// Android host tests run the androidMain bindings on the host JVM, but dev.oxikt:runtime-android only
-// ships liboxikt_runtime for Android ABIs. Borrow the host builds bundled in runtime-jvm so JNA can
-// find them on the test classpath.
+// Android host tests run the androidMain bindings on the host JVM, which needs host builds of both
+// libopaquekmp and liboxikt_runtime. Two oxikt 1.4.0 gaps break that:
+// - dev.oxikt:runtime-android only ships liboxikt_runtime for Android ABIs, so borrow the host
+//   builds bundled in dev.oxikt:runtime-jvm.
+// - The plugin hands the crate's host library to AGP as a host-test Java resource, and AGP drops
+//   every .so file from Java resources, so on Linux neither library reaches the tests.
+// AGP also overrides additions to the test classpath, so JNA is pointed at both directories
+// directly with jna.library.path instead.
 val oxiktHostRuntime = configurations.create("oxiktHostRuntime") {
     isCanBeConsumed = false
     isTransitive = false
@@ -69,7 +74,30 @@ val extractOxiktHostRuntime = tasks.register<Sync>("extractOxiktHostRuntime") {
     into(layout.buildDirectory.dir("oxiktHostRuntime"))
 }
 
-kotlin.sourceSets.getByName("androidHostTest").resources.srcDir(extractOxiktHostRuntime)
+// JNA's directory name for this machine, e.g. linux-x86-64 or darwin-aarch64.
+val jnaHostPlatform: String = run {
+    val os = System.getProperty("os.name").lowercase()
+    val arch = System.getProperty("os.arch").lowercase()
+    val osPrefix = when {
+        os.startsWith("mac") -> "darwin"
+        os.startsWith("windows") -> "win32"
+        else -> "linux"
+    }
+    val archSuffix = if (arch == "aarch64" || arch == "arm64") "aarch64" else "x86-64"
+    "$osPrefix-$archSuffix"
+}
+
+tasks.withType<Test>().configureEach {
+    if (name == "testAndroidHostTest") {
+        val crateLibraries = tasks.named("mergeUniffiAndroidHostTestResources")
+        dependsOn(crateLibraries, extractOxiktHostRuntime)
+        val libraryDirs = listOf(
+            layout.buildDirectory.dir("generated/resources/mergeUniffiAndroidHostTestResources/$jnaHostPlatform"),
+            layout.buildDirectory.dir("oxiktHostRuntime/$jnaHostPlatform"),
+        ).map { it.get().asFile.absolutePath }
+        systemProperty("jna.library.path", libraryDirs.joinToString(File.pathSeparator))
+    }
+}
 
 uniffi {
     generateFromLibrary {
